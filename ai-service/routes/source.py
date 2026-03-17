@@ -35,7 +35,7 @@ async def validate_api(request: APIValidationRequest):
     Validate via API call
     """
     try:
-        data = request.dict()
+        data = request.model_dump()
         result = source_validator.validate_api(data)
         return result
     except Exception as e:

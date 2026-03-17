@@ -48,7 +48,6 @@ const ActionDetails = () => {
             ev: '🚗',
             transport: '🚇',
             water: '💧',
-            waste: '♻️',
             tree: '🌳'
         };
         return icons[type] || '📝';
@@ -193,26 +192,26 @@ const ActionDetails = () => {
                                 </div>
                             </div>
 
-                            {action.verifiedAt && (
+                            {action.verificationResults?.verifiedAt && (
                                 <div className="flex items-start">
                                     <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                                         <span className="text-blue-600">✓</span>
                                     </div>
                                     <div className="ml-3">
-                                        <p className="text-sm font-medium text-gray-900">Verified</p>
-                                        <p className="text-xs text-gray-500">{format(new Date(action.verifiedAt), 'dd MMM yyyy, HH:mm')}</p>
+                                        <p className="text-sm font-medium text-gray-900">AI Verified</p>
+                                        <p className="text-xs text-gray-500">{format(new Date(action.verificationResults.verifiedAt), 'dd MMM yyyy, HH:mm')}</p>
                                     </div>
                                 </div>
                             )}
 
-                            {action.status === 'approved' && action.creditsIssuedAt && (
+                            {action.status === 'approved' && action.updatedAt && (
                                 <div className="flex items-start">
                                     <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
                                         <span className="text-green-600">✓</span>
                                     </div>
                                     <div className="ml-3">
                                         <p className="text-sm font-medium text-gray-900">Credits Issued</p>
-                                        <p className="text-xs text-gray-500">{format(new Date(action.creditsIssuedAt), 'dd MMM yyyy, HH:mm')}</p>
+                                        <p className="text-xs text-gray-500">{format(new Date(action.updatedAt), 'dd MMM yyyy, HH:mm')}</p>
                                     </div>
                                 </div>
                             )}
@@ -273,23 +272,7 @@ const ActionDetails = () => {
                         </div>
                     )}
 
-                    {/* Admin Actions (if user is admin) */}
-                    {action.status === 'pending' && window.userRole === 'admin' && (
-                        <div className="bg-white rounded-xl shadow-md p-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Admin Actions</h3>
-                            <div className="space-y-3">
-                                <button className="w-full btn-primary">
-                                    Approve Action
-                                </button>
-                                <button className="w-full btn-secondary">
-                                    Request Changes
-                                </button>
-                                <button className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700">
-                                    Reject Action
-                                </button>
-                            </div>
-                        </div>
-                    )}
+
                 </div>
             </div>
         </div>

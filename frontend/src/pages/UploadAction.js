@@ -1,11 +1,12 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import DocumentScanner from '../components/DocumentScanner';
 
 const UploadSchema = Yup.object().shape({
     actionType: Yup.string()
@@ -20,16 +21,25 @@ const actionTypes = [
     { value: 'ev', label: 'EV Charging', icon: '🚗' },
     { value: 'transport', label: 'Public Transport', icon: '🚇' },
     { value: 'water', label: 'Water Conservation', icon: '💧' },
-    { value: 'waste', label: 'Waste Management', icon: '♻️' },
     { value: 'tree', label: 'Tree Plantation', icon: '🌳' },
 ];
 
 const UploadAction = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const { user } = useSelector((state) => state.auth);
     const [files, setFiles] = useState([]);
     const [uploading, setUploading] = useState(false);
     const [previews, setPreviews] = useState([]);
+    const [scannedLocation, setScannedLocation] = useState(null);
+
+    // Redirect admins away from the upload page
+    React.useEffect(() => {
+        if (user && user.role === 'admin') {
+            toast.error('Admins are not allowed to upload actions');
+            navigate('/admin');
+        }
+    }, [user, navigate]);
 
     const onDrop = useCallback((acceptedFiles) => {
         setFiles(prev => [...prev, ...acceptedFiles]);
@@ -63,6 +73,24 @@ const UploadAction = () => {
     const removeFile = (index) => {
         setFiles(prev => prev.filter((_, i) => i !== index));
         setPreviews(prev => prev.filter((_, i) => i !== index));
+        // If the removed file was the scanned one, clear location if needed
+        // (Simplified logic: just keeping location if it exists)
+    };
+
+    const handleCapture = (file, location) => {
+        setFiles(prev => [...prev, file]);
+        setPreviews(prev => [...prev, { file: file.name, url: URL.createObjectURL(file) }]);
+        setScannedLocation(location);
+        toast.success("Document scanned with Geo-Tag!");
+    };
+
+    const handleClearScan = () => {
+        // Find if any file starts with 'scan_' and remove it
+        const scanIndex = files.findIndex(f => f.name.startsWith('scan_'));
+        if (scanIndex !== -1) {
+            removeFile(scanIndex);
+        }
+        setScannedLocation(null);
     };
 
     const handleSubmit = async (values, { setSubmitting }) => {
@@ -83,6 +111,11 @@ const UploadAction = () => {
             formData.append('userInput', JSON.stringify({ notes: values.userInput }));
         }
 
+        if (scannedLocation) {
+            formData.append('latitude', scannedLocation.lat);
+            formData.append('longitude', scannedLocation.lng);
+        }
+
         try {
             // Use the configured api service — it auto-attaches the Bearer token
             await api.post('/actions/upload', formData, {
@@ -91,7 +124,7 @@ const UploadAction = () => {
                 },
             });
 
-            toast.success('Action uploaded successfully! Verification in progress.');
+            toast.success('Action uploaded successfully! AI Verification in progress.');
             navigate('/dashboard');
         } catch (error) {
             console.error('Upload error:', error.response || error);
@@ -108,7 +141,28 @@ const UploadAction = () => {
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-8">Upload Sustainability Action</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Upload Sustainability Action</h1>
+            <p className="text-gray-600 mb-4">
+                Your submission will be <strong>automatically verified by AI</strong>. Credits will be issued immediately upon successful verification.
+            </p>
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-8">
+                <div className="flex">
+                    <div className="flex-shrink-0">
+                        <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        </svg>
+                    </div>
+                    <div className="ml-3">
+                        <h3 className="text-sm font-medium text-blue-800">Fraud Analysis & Integrity</h3>
+                        <div className="mt-2 text-sm text-blue-700">
+                            <ul className="list-disc pl-5 space-y-1">
+                                <li><strong>Duplicate Detection:</strong> A SHA-256 hash is generated for each uploaded document to detect exact duplicates instantly. If a duplicate is found, the upload is rejected and no credits are awarded.</li>
+                                <li><strong>Security:</strong> For non-duplicate submissions, an ensemble ML model evaluates fraud probability using behavioral, statistical, and document-level features.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div className="bg-white rounded-xl shadow-md p-6">
                 <Formik
@@ -153,36 +207,43 @@ const UploadAction = () => {
                             <ErrorMessage name="actionType" component="p" className="mt-2 text-sm text-red-600" />
                         </div>
 
-              {/* File Upload */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Upload Proof Documents
-                        </label>
-                        <div
-                            {...getRootProps()}
-                            className={`
-                        border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
-                        ${isDragActive ? 'border-primary-600 bg-primary-50' : 'border-gray-300 hover:border-gray-400'}
-                  `}
-                >
-                        <input {...getInputProps()} />
-                        <div className="space-y-2">
-                            <div className="text-4xl mb-4">📎</div>
-                            {isDragActive ? (
-                                <p className="text-primary-600">Drop the files here...</p>
-                            ) : (
-                                <>
-                                    <p className="text-gray-600">
-                                        Drag & drop files here, or click to select
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                        Supported: Images, PDF, DOC (Max 10MB each, up to 5 files)
-                                    </p>
-                                </>
-                            )}
+                        {/* Scanner or Upload */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Option 1: Scan Document (With Geo-Tag)
+                                </label>
+                                <DocumentScanner onCapture={handleCapture} onClear={handleClearScan} />
+                            </div>
+
+                            <div className="flex flex-col">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Option 2: Upload Files
+                                </label>
+                                <div
+                                    {...getRootProps()}
+                                    className={`
+                                flex-grow border-2 border-dashed rounded-lg p-4 text-center cursor-pointer flex flex-col items-center justify-center
+                                ${isDragActive ? 'border-primary-600 bg-primary-50' : 'border-gray-300 hover:border-gray-400'}
+                            `}
+                                >
+                                    <input {...getInputProps()} />
+                                    <div className="space-y-1">
+                                        <div className="text-2xl mb-2">📎</div>
+                                        {isDragActive ? (
+                                            <p className="text-primary-600 text-xs text-xs">Drop here...</p>
+                                        ) : (
+                                            <>
+                                                <p className="text-gray-600 text-sm font-medium">Click or Drag & Drop</p>
+                                                <p className="text-[10px] text-gray-500">
+                                                    PDF, Images up to 10MB
+                                                </p>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-            </div>
 
             {/* File Previews */}
             {previews.length > 0 && (

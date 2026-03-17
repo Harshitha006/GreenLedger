@@ -131,9 +131,6 @@ const MyListings = () => {
                 Credits
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Price/Credit
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Status
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -166,9 +163,7 @@ const MyListings = () => {
                     </p>
                   </div>
                 </td>
-                <td className="px-6 py-4">
-                  {marketplaceService.formatPrice(listing.pricePerCredit)}
-                </td>
+
                 <td className="px-6 py-4">
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(listing.status)}`}>
                     {listing.status}

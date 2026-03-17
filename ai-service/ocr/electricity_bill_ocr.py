@@ -154,21 +154,23 @@ class ElectricityBillOCR:
             # Extract text
             text = self.extract_text(image_bytes)
             
-            # Extract fields
+            # Explicitly initialize result data as a dict to help the linter
+            bill_data = {
+                'bill_number': self.extract_bill_number(text),
+                'consumer_number': self.extract_consumer_number(text),
+                'units': self.extract_units(text),
+                'bill_date': self.extract_date(text),
+                'amount': self.extract_amount(text),
+                'full_text': text[:500]  # Store first 500 chars for debugging
+            }
+            
             result = {
                 'success': True,
-                'data': {
-                    'bill_number': self.extract_bill_number(text),
-                    'consumer_number': self.extract_consumer_number(text),
-                    'units': self.extract_units(text),
-                    'bill_date': self.extract_date(text),
-                    'amount': self.extract_amount(text),
-                    'full_text': text[:500]  # Store first 500 chars for debugging
-                }
+                'data': bill_data
             }
             
             # Log missing fields
-            missing = [k for k, v in result['data'].items() if v is None and k != 'full_text']
+            missing = [k for k, v in bill_data.items() if v is None and k != 'full_text']
             if missing:
                 logger.warning(f"Missing fields: {missing}")
             

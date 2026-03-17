@@ -31,7 +31,7 @@ async def analyze_fraud(request: FraudRequest):
     """
     try:
         # Convert request to dict
-        data = request.dict()
+        data = request.model_dump()
         
         # Run ensemble prediction
         result = fraud_detector.ensemble_predict(data)
@@ -50,7 +50,7 @@ async def batch_analyze(requests: List[FraudRequest]):
     try:
         results = []
         for req in requests:
-            data = req.dict()
+            data = req.model_dump()
             result = fraud_detector.ensemble_predict(data)
             results.append(result)
         

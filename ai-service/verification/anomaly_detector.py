@@ -1,5 +1,4 @@
 import numpy as np
-from scipy import stats
 import logging
 from typing import List, Dict, Any
 

@@ -13,7 +13,7 @@ const actionSchema = new mongoose.Schema({
     actionType: {
         type: String,
         enum: {
-            values: ['electricity', 'solar', 'ev', 'transport', 'water', 'waste', 'tree'],
+            values: ['electricity', 'solar', 'ev', 'transport', 'water', 'tree'],
             message: '{VALUE} is not a valid action type'
         },
         required: [true, 'Action type is required']
@@ -30,7 +30,9 @@ const actionSchema = new mongoose.Schema({
         mimeType: String,
         uploadedAt: Date,
         hash: String,
-        phash: String // Perceptual hash for duplicate detection
+        phash: String, // Perceptual hash for duplicate detection
+        isDuplicate: { type: Boolean, default: false },
+        duplicateType: { type: String, enum: ['exact', 'similar', null], default: null }
     }],
 
     // QR/API Verification

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import api from '../services/api';
@@ -6,6 +7,7 @@ import creditService from '../services/creditService';
 import toast from 'react-hot-toast';
 
 const ActionsList = () => {
+    const { user } = useSelector((state) => state.auth);
     const [actions, setActions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({
@@ -57,7 +59,6 @@ const ActionsList = () => {
             ev: '🚗',
             transport: '🚇',
             water: '💧',
-            waste: '♻️',
             tree: '🌳'
         };
         return icons[type] || '📝';
@@ -79,12 +80,14 @@ const ActionsList = () => {
                     <h1 className="text-3xl font-bold text-gray-900">My Actions</h1>
                     <p className="text-gray-600 mt-1">Track all your sustainability actions</p>
                 </div>
-                <Link to="/upload" className="btn-primary flex items-center">
-                    <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    New Action
-                </Link>
+                {user?.role !== 'admin' && (
+                    <Link
+                        to="/upload-action"
+                        className="btn-primary"
+                    >
+                        + New Action
+                    </Link>
+                )}
             </div>
 
             {/* Filters */}
@@ -114,7 +117,6 @@ const ActionsList = () => {
                         <option value="ev">EV</option>
                         <option value="transport">Transport</option>
                         <option value="water">Water</option>
-                        <option value="waste">Waste</option>
                         <option value="tree">Tree</option>
                     </select>
                 </div>
@@ -127,9 +129,6 @@ const ActionsList = () => {
                         <div className="text-6xl mb-4">📭</div>
                         <h3 className="text-lg font-medium text-gray-900 mb-2">No actions found</h3>
                         <p className="text-gray-600 mb-6">Start your sustainability journey today!</p>
-                        <Link to="/upload" className="btn-primary">
-                            Upload First Action
-                        </Link>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">

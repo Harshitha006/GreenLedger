@@ -18,7 +18,7 @@ const {
 // Validation rules
 const uploadValidation = [
     body('actionType')
-        .isIn(['electricity', 'solar', 'ev', 'transport', 'water', 'waste', 'tree'])
+        .isIn(['electricity', 'solar', 'ev', 'transport', 'water', 'tree'])
         .withMessage('Invalid action type'),
     body('userInput')
         .optional()

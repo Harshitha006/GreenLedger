@@ -213,19 +213,9 @@ const ListingDetails = () => {
                 </span>
               </div>
               
-              <div className="flex justify-between">
-                <span className="text-gray-600">Price per Credit</span>
-                <span className="font-semibold text-gray-900">
-                  {marketplaceService.formatPrice(listing.pricePerCredit)}
-                </span>
-              </div>
+
               
-              <div className="flex justify-between text-lg font-bold border-t border-gray-200 pt-4">
-                <span className="text-gray-900">Total Price</span>
-                <span className="text-primary-600">
-                  {marketplaceService.formatPrice(listing.totalPrice)}
-                </span>
-              </div>
+
 
               <div className="flex justify-between text-sm text-gray-500">
                 <span>Listing Type</span>

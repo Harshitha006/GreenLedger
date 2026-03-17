@@ -127,10 +127,7 @@ const RewardDetails = () => {
                                 {reward.creditCost} <span className="text-lg font-medium">Credits</span>
                             </p>
                         </div>
-                        <div className="text-right">
-                            <p className="text-sm text-gray-500">Approx. Value</p>
-                            <p className="text-2xl font-semibold text-gray-900">₹{reward.monetaryValue}</p>
-                        </div>
+
                     </div>
 
                     <div className="prose prose-primary max-w-none">

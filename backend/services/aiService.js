@@ -98,6 +98,22 @@ const callSourceValidation = async (data) => {
   }
 };
 
+const getPHash = async (fileBuffer) => {
+  try {
+    const formData = new FormData();
+    formData.append('file', fileBuffer, { filename: 'temp.jpg' });
+
+    const response = await axios.post(`${AI_SERVICE_URL}/api/verify/duplicate`, formData, {
+      headers: formData.getHeaders(),
+    });
+
+    return response.data.hashes?.phash;
+  } catch (error) {
+    console.error('getPHash error:', error);
+    return null;
+  }
+};
+
 module.exports = {
   callOCRService,
   callDuplicateCheck,
@@ -105,4 +121,5 @@ module.exports = {
   callFraudAnalysis,
   callTamperDetection,
   callSourceValidation,
+  getPHash,
 };

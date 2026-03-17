@@ -13,29 +13,33 @@ class DuplicateDetector:
         self.db = db_connection
         # In production, this would connect to MongoDB to check existing hashes
         
-    def calculate_phash(self, image_bytes):
-        """Calculate perceptual hash"""
+    def calculate_phash(self, file_bytes):
+        """Calculate perceptual hash (only for images)"""
         try:
-            image = Image.open(io.BytesIO(image_bytes))
-            # Convert to RGB if necessary
+            # Try to open as image
+            image = Image.open(io.BytesIO(file_bytes))
+            # Convert to RGB if necessary for consistency
             if image.mode != 'RGB':
                 image = image.convert('RGB')
             phash = imagehash.phash(image)
             return str(phash)
-        except Exception as e:
-            logger.error(f"PHash calculation failed: {str(e)}")
+        except Exception:
+            # Not an image or corrupted, return None for phash
+            # Exact matches will still be caught by SHA-256
             return None
     
-    def calculate_md5(self, image_bytes):
-        """Calculate MD5 hash (exact match)"""
-        return hashlib.md5(image_bytes).hexdigest()
+    def calculate_sha256(self, file_bytes):
+        """Calculate SHA-256 hash (exact match)"""
+        return hashlib.sha256(file_bytes).hexdigest()
     
-    def calculate_hashes(self, image_bytes):
+    def calculate_hashes(self, file_bytes):
         """Calculate all hashes"""
-        return {
-            'md5': self.calculate_md5(image_bytes),
-            'phash': self.calculate_phash(image_bytes),
+        hashes = {
+            'md5': self.calculate_md5(file_bytes),
+            'sha256': self.calculate_sha256(file_bytes),
+            'phash': self.calculate_phash(file_bytes)
         }
+        return hashes
     
     def check_duplicate(self, image_bytes, user_id=None):
         """Check if image is duplicate"""
@@ -88,8 +92,8 @@ class DuplicateDetector:
             return 0
         
         # Convert to binary and calculate Hamming distance
-        bin1 = bin(int(hash1, 16))[2:].zfill(64)
-        bin2 = bin(int(hash2, 16))[2:].zfill(64)
+        bin1 = format(int(str(hash1), 16), '064b')
+        bin2 = format(int(str(hash2), 16), '064b')
         
         # Count differing bits
         distance = sum(b1 != b2 for b1, b2 in zip(bin1, bin2))

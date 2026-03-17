@@ -1,29 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
+import { useSelector } from 'react-redux';
 import marketplaceService from '../services/marketplaceService';
 import creditService from '../services/creditService';
 import toast from 'react-hot-toast';
 
 const Marketplace = () => {
+  const { user } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
   const [listings, setListings] = useState([]);
   const [rewards, setRewards] = useState([]);
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState({
+    listings: { total: 0, active: 0 },
+    rewards: { total: 0, distinct: 0 }
+  });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('listings');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [filters, setFilters] = useState({
     type: 'all',
     category: 'all',
-    minPrice: '',
-    maxPrice: '',
-    minCredits: '',
-    maxCredits: '',
+    search: '',
     sort: '-createdAt',
     page: 1
   });
   const [pagination, setPagination] = useState(null);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
   const [newListing, setNewListing] = useState({
     title: '',
     description: '',
@@ -37,6 +41,14 @@ const Marketplace = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  // Redirect admins away from the marketplace
+  useEffect(() => {
+    if (user && user.role === 'admin') {
+      toast.error('Admins are not allowed to access the marketplace');
+      navigate('/admin');
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     if (activeTab === 'listings') {
@@ -203,15 +215,6 @@ const Marketplace = () => {
             </p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <p className="text-sm text-gray-600 mb-1">Avg Price/Credit</p>
-            <p className="text-2xl font-bold text-gray-900">
-              ₹{stats.listings.avgPrice?.toFixed(2) || '0.00'}
-            </p>
-            <p className="text-xs text-orange-600 mt-2">
-              Range: ₹{stats.listings.minPrice} - ₹{stats.listings.maxPrice}
-            </p>
-          </div>
         </div>
       )}
 
@@ -262,21 +265,7 @@ const Marketplace = () => {
             <option value="business">Business</option>
           </select>
 
-          <input
-            type="number"
-            placeholder="Min Price (₹)"
-            value={filters.minPrice}
-            onChange={(e) => setFilters({ ...filters, minPrice: e.target.value, page: 1 })}
-            className="input-field"
-          />
 
-          <input
-            type="number"
-            placeholder="Max Price (₹)"
-            value={filters.maxPrice}
-            onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value, page: 1 })}
-            className="input-field"
-          />
 
           <select
             value={filters.sort}
@@ -285,8 +274,7 @@ const Marketplace = () => {
           >
             <option value="-createdAt">Newest First</option>
             <option value="createdAt">Oldest First</option>
-            <option value="-pricePerCredit">Price: High to Low</option>
-            <option value="pricePerCredit">Price: Low to High</option>
+
             <option value="-creditAmount">Credits: High to Low</option>
             <option value="creditAmount">Credits: Low to High</option>
           </select>
@@ -323,12 +311,7 @@ const Marketplace = () => {
                       {creditService.formatCredits(listing.creditAmount)}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm text-gray-500">Price/Credit</p>
-                    <p className="text-xl font-bold text-gray-900">
-                      {marketplaceService.formatPrice(listing.pricePerCredit)}
-                    </p>
-                  </div>
+
                 </div>
 
                 <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
@@ -412,19 +395,7 @@ const Marketplace = () => {
                       {creditService.formatCredits(reward.creditCost)}
                     </p>
                   </div>
-                  {reward.monetaryValue && (
-                    <div className="text-right">
-                      <p className="text-sm text-gray-500">Value</p>
-                      <p className="text-xl font-bold text-gray-900">
-                        {marketplaceService.formatPrice(reward.monetaryValue)}
-                      </p>
-                      {reward.savingsPercentage > 0 && (
-                        <p className="text-xs text-green-600">
-                          Save {reward.savingsPercentage}%
-                        </p>
-                      )}
-                    </div>
-                  )}
+
                 </div>
 
                 <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
@@ -562,22 +533,7 @@ const Marketplace = () => {
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Price per Credit (₹)
-                      </label>
-                      <input
-                        type="number"
-                        required
-                        min="0.01"
-                        step="0.01"
-                        max="1000"
-                        value={newListing.pricePerCredit}
-                        onChange={(e) => setNewListing({ ...newListing, pricePerCredit: e.target.value })}
-                        className="mt-1 block w-full input-field"
-                        placeholder="10"
-                      />
-                    </div>
+
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">

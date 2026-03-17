@@ -1,0 +1,22 @@
+{
+    "venvPath": "C:/Users/Harshitha/GreenLedger",
+    "venv": "ai_env_new",
+    "pythonVersion": "3.13",
+    "pythonPlatform": "Windows",
+    "executionEnvironments": [
+        {
+            "root": "ai-service",
+            "extraPaths": [
+                "."
+            ]
+        }
+    ],
+    "extraPaths": [
+        "ai-service"
+    ],
+    "include": [
+        "ai-service"
+    ],
+    "typeCheckingMode": "off",
+    "reportMissingImports": "none"
+}

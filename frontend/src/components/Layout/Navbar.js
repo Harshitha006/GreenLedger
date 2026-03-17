@@ -33,24 +33,21 @@ const Navbar = () => {
                             >
                                 Dashboard
                             </Link>
-                            <Link
-                                to="/actions"
-                                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-900"
-                            >
-                                My Actions
-                            </Link>
+
                             <Link
                                 to="/wallet"
                                 className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-900"
                             >
                                 Wallet
                             </Link>
-                            <Link
-                                to="/marketplace"
-                                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-900"
-                            >
-                                Marketplace
-                            </Link>
+                            {user?.role !== 'admin' && (
+                                <Link
+                                    to="/marketplace"
+                                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-900"
+                                >
+                                    Marketplace
+                                </Link>
+                            )}
                             {user?.role === 'admin' && (
                                 <Link
                                     to="/admin"
@@ -78,14 +75,7 @@ const Navbar = () => {
                         </div>
                     </div>
 
-                    <div className="flex items-center">
-                        {/* Quick actions */}
-                        <Link
-                            to="/upload"
-                            className="mr-4 btn-primary text-sm py-2"
-                        >
-                            + New Action
-                        </Link>
+                    <div className="flex items-center space-x-4">
 
                         {/* User menu */}
                         <Menu as="div" className="relative">

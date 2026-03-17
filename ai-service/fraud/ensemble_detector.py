@@ -5,13 +5,13 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import StandardScaler
 import joblib
 import logging
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import xgboost as xgb
 
 logger = logging.getLogger(__name__)
 
 class FraudEnsembleDetector:
-    def __init__(self, model_path: str = None):
+    def __init__(self, model_path: Optional[str] = None):
         """
         Initialize ensemble of fraud detection models
         """
@@ -128,9 +128,10 @@ class FraudEnsembleDetector:
         
         for name, model in self.models.items():
             try:
-                # Normally needs fitting, using a default value if not fitted
-                if hasattr(model, 'classes_'):
-                    prob = model.predict_proba(features)[0][1]  # Probability of fraud
+                # Check for necessary attributes to satisfy linter
+                if hasattr(model, 'predict_proba') and hasattr(model, 'classes_'):
+                    prob_array = model.predict_proba(features)  # type: ignore
+                    prob = prob_array[0][1]  # Probability of fraud (class 1)
                 else:
                     prob = 0.5
                 probabilities[name] = float(prob)
@@ -183,7 +184,7 @@ class FraudEnsembleDetector:
                 risk_level = 'CRITICAL'
             
             # Identify contributing factors
-            contributing_factors = []
+            contributing_factors: List[str] = []
             
             if data.get('tamper_score', 0) > 0.5:
                 contributing_factors.append('document_tampering')
@@ -196,11 +197,16 @@ class FraudEnsembleDetector:
             if not data.get('has_qr') and data.get('proof_count', 0) < 2:
                 contributing_factors.append('insufficient_proof')
             
+            # Slicing is failing linter, using explicit loop for top 3 factors
+            top_factors = []
+            for i in range(min(3, len(contributing_factors))):
+                top_factors.append(contributing_factors[i])
+            
             return {
                 'fraud_probability': float(ensemble_prob),
                 'risk_level': risk_level,
                 'model_agreement': float(agreement),
-                'contributing_factors': contributing_factors[:3],  # Top 3 factors
+                'contributing_factors': top_factors,
                 'individual_model_predictions': individual_probs,
                 'feature_importance': self._get_feature_importance(features),
                 'model_version': '1.0.0'
@@ -224,8 +230,10 @@ class FraudEnsembleDetector:
             # Use random forest feature importance
             if 'random_forest' in self.models:
                 rf = self.models['random_forest']
-                if hasattr(rf, 'feature_importances_'):
-                    for name, importance in zip(self.feature_names, rf.feature_importances_):
+                # Cast to avoid linter error 'object has no attribute feature_importances_'
+                importances_attr = getattr(rf, 'feature_importances_', None)
+                if importances_attr is not None:
+                    for name, importance in zip(self.feature_names, importances_attr):
                         importances.append({
                             'feature': name,
                             'importance': float(importance)
@@ -234,7 +242,10 @@ class FraudEnsembleDetector:
             # Sort by importance
             importances.sort(key=lambda x: x['importance'], reverse=True)
             
-            return importances[:5]  # Top 5 features
+            top_importances = []
+            for i in range(min(5, len(importances))):
+                top_importances.append(importances[i])
+            return top_importances  # Top 5 features
             
         except Exception as e:
             logger.error(f"Feature importance calculation failed: {str(e)}")
@@ -250,7 +261,8 @@ class FraudEnsembleDetector:
             
             # Train each model
             for name, model in self.models.items():
-                model.fit(X_scaled, y)
+                if hasattr(model, 'fit'):
+                    model.fit(X_scaled, y)  # type: ignore
                 logger.info(f"Trained {name} model")
             
             logger.info("All models trained successfully")

@@ -343,16 +343,7 @@ const getNotifications = asyncHandler(async (req, res) => {
 
     const notifications = [];
 
-    if (pendingActions > 0) {
-        notifications.push({
-            type: 'pending',
-            title: 'Actions pending verification',
-            message: `You have ${pendingActions} action${pendingActions > 1 ? 's' : ''} waiting for verification`,
-            icon: '⏳',
-            priority: 'high',
-            link: '/actions'
-        });
-    }
+
 
     if (completedActions > 0) {
         notifications.push({

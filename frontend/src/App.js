@@ -19,6 +19,9 @@ import RewardDetails from './pages/RewardDetails';
 import AdminDashboard from './pages/AdminDashboard';
 import FraudDashboard from './pages/FraudDashboard';
 import InstitutionDashboard from './pages/InstitutionDashboard';
+import ActionsList from './pages/ActionsList';
+import ActionDetails from './pages/ActionDetails';
+import CreditWallet from './pages/CreditWallet';
 
 function App() {
     return (
@@ -61,9 +64,27 @@ function App() {
                         </PrivateRoute>
                     } />
 
-                    <Route path="upload" element={
+                    <Route path="upload-action" element={
                         <PrivateRoute>
                             <UploadAction />
+                        </PrivateRoute>
+                    } />
+
+                    <Route path="actions" element={
+                        <PrivateRoute>
+                            <ActionsList />
+                        </PrivateRoute>
+                    } />
+
+                    <Route path="actions/:id" element={
+                        <PrivateRoute>
+                            <ActionDetails />
+                        </PrivateRoute>
+                    } />
+
+                    <Route path="wallet" element={
+                        <PrivateRoute>
+                            <CreditWallet />
                         </PrivateRoute>
                     } />
 

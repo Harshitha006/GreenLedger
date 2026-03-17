@@ -1,12 +1,9 @@
-import hashlib
-import hmac
 import json
 import logging
 from typing import Dict, Any, Optional
 from datetime import datetime
-import requests
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding, rsa
+from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 import base64
 

@@ -9,8 +9,6 @@ import { Dialog, Transition } from '@headlessui/react';
 const AdminDashboard = () => {
     const { user } = useSelector((state) => state.auth);
     const [stats, setStats] = useState(null);
-    const [pendingActions, setPendingActions] = useState([]);
-    const [marketplaceListings, setMarketplaceListings] = useState([]);
     const [rewards, setRewards] = useState([]);
     const [adminLogs, setAdminLogs] = useState([]);
     const [users, setUsers] = useState([]);
@@ -29,18 +27,14 @@ const AdminDashboard = () => {
     const loadAdminData = async () => {
         setLoading(true);
         try {
-            const [statsRes, actionsRes, listingsRes, rewardsRes, logsRes, usersRes] = await Promise.all([
+            const [statsRes, rewardsRes, logsRes, usersRes] = await Promise.all([
                 api.get('/admin/system-stats'),
-                api.get('/verification/pending'),
-                marketplaceService.getListings({ status: 'all' }),
                 marketplaceService.getRewards(),
                 api.get('/admin/logs'),
                 api.get('/admin/users')
             ]);
 
             setStats(statsRes.data.data);
-            setPendingActions(actionsRes.data.data);
-            setMarketplaceListings(listingsRes.data);
             setRewards(rewardsRes.data);
             setAdminLogs(logsRes.data.data);
             setUsers(usersRes.data.data);
@@ -52,15 +46,7 @@ const AdminDashboard = () => {
         }
     };
 
-    const handleVerifyAction = async (actionId, status) => {
-        try {
-            await api.post(`/verification/verify/${actionId}`, { status });
-            toast.success(`Action ${status} successfully`);
-            loadAdminData();
-        } catch (error) {
-            toast.error('Verification failed');
-        }
-    };
+
 
     const handleCreateReward = async (e) => {
         e.preventDefault();
@@ -93,16 +79,7 @@ const AdminDashboard = () => {
         }
     };
 
-    const handleDeleteListing = async (listingId) => {
-        if (!window.confirm('Are you sure you want to cancel this listing? Credits will be returned to the seller.')) return;
-        try {
-            await api.delete(`/marketplace/listings/${listingId}`);
-            toast.success('Listing cancelled successfully');
-            loadAdminData();
-        } catch (error) {
-            toast.error('Failed to cancel listing');
-        }
-    };
+
 
     const openEditRewardModal = (reward) => {
         setRewardForm({
@@ -146,10 +123,6 @@ const AdminDashboard = () => {
                     <p className="text-sm text-gray-500 uppercase">Total Users</p>
                     <p className="text-2xl font-bold">{stats?.counts?.users || 0}</p>
                 </div>
-                <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-yellow-500">
-                    <p className="text-sm text-gray-500 uppercase">Pending Actions</p>
-                    <p className="text-2xl font-bold">{pendingActions.length}</p>
-                </div>
                 <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-green-500">
                     <p className="text-sm text-gray-500 uppercase">Credits Circulated</p>
                     <p className="text-2xl font-bold">{(stats?.credits?.totalCredits || 0).toLocaleString()}</p>
@@ -164,7 +137,7 @@ const AdminDashboard = () => {
             <div className="bg-white rounded-xl shadow-md overflow-hidden">
                 <div className="border-b border-gray-200">
                     <nav className="flex">
-                        {['overview', 'verification', 'marketplace', 'rewards', 'users', 'logs'].map((tab) => (
+                        {['overview', 'rewards', 'users', 'logs'].map((tab) => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
@@ -181,93 +154,9 @@ const AdminDashboard = () => {
                 </div>
 
                 <div className="p-6">
-                    {activeTab === 'verification' && (
-                        <div className="space-y-6">
-                            <h2 className="text-xl font-bold">Pending Action Verifications</h2>
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action Type</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {pendingActions.map((action) => (
-                                        <tr key={action._id}>
-                                            <td className="px-6 py-4 text-sm text-gray-900">{action.userName || 'Anonymous'}</td>
-                                            <td className="px-6 py-4 text-sm text-gray-500 capitalize">{action.actionType}</td>
-                                            <td className="px-6 py-4 text-sm text-gray-500">
-                                                {format(new Date(action.createdAt), 'dd MMM yyyy')}
-                                            </td>
-                                            <td className="px-6 py-4 text-right space-x-2">
-                                                <button
-                                                    onClick={() => handleVerifyAction(action._id, 'approved')}
-                                                    className="bg-green-100 text-green-700 px-3 py-1 rounded hover:bg-green-200"
-                                                >
-                                                    Approve
-                                                </button>
-                                                <button
-                                                    onClick={() => handleVerifyAction(action._id, 'rejected')}
-                                                    className="bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200"
-                                                >
-                                                    Reject
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {pendingActions.length === 0 && (
-                                        <tr>
-                                            <td colSpan="4" className="px-6 py-8 text-center text-gray-500">
-                                                No pending actions to verify
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
 
-                    {activeTab === 'marketplace' && (
-                        <div className="space-y-6">
-                            <div className="flex justify-between items-center">
-                                <h2 className="text-xl font-bold">Marketplace Listings</h2>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {marketplaceListings.map((listing) => (
-                                    <div key={listing._id} className="border rounded-lg p-4 bg-gray-50">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <h3 className="font-semibold">{listing.title}</h3>
-                                            <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                                listing.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-200'
-                                            }`}>
-                                                {listing.status}
-                                            </span>
-                                        </div>
-                                        <p className="text-sm text-gray-600 mb-2">Seller: {listing.sellerName}</p>
-                                        <p className="text-lg font-bold text-primary-600">{listing.creditAmount} GC</p>
-                                        <div className="mt-4 flex space-x-2">
-                                            <button 
-                                                onClick={() => window.open(`/marketplace/listing/${listing._id}`, '_blank')}
-                                                className="text-xs text-blue-600 font-medium"
-                                            >
-                                                View Details
-                                            </button>
-                                            {listing.status === 'active' && (
-                                                <button 
-                                                    onClick={() => handleDeleteListing(listing._id)}
-                                                    className="text-xs text-red-600 font-medium"
-                                                >
-                                                    Disable Listing
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+
+
 
                     {activeTab === 'rewards' && (
                         <div className="space-y-6">
@@ -286,7 +175,6 @@ const AdminDashboard = () => {
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reward Name</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Partner</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cost</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
                                     </tr>
                                 </thead>
@@ -296,18 +184,8 @@ const AdminDashboard = () => {
                                             <td className="px-6 py-4 text-sm text-gray-900 font-medium">{reward.name}</td>
                                             <td className="px-6 py-4 text-sm text-gray-500">{reward.partnerName}</td>
                                             <td className="px-6 py-4 text-sm text-gray-900 font-bold">{reward.creditCost} GC</td>
-                                            <td className="px-6 py-4">
-                                                <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                                    reward.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                                }`}>
-                                                    {reward.isActive ? 'Active' : 'Hidden'}
-                                                </span>
-                                            </td>
-                                            <td 
-                                                onClick={() => openEditRewardModal(reward)}
-                                                className="px-6 py-4 text-right text-primary-600 cursor-pointer text-sm font-medium hover:underline"
-                                            >
-                                                Edit
+                                            <td className="px-6 py-4 text-right">
+                                                {/* Actions removed */}
                                             </td>
                                         </tr>
                                     ))}
@@ -551,16 +429,7 @@ const AdminDashboard = () => {
                                                 onChange={(e) => setRewardForm({...rewardForm, creditCost: e.target.value})}
                                             />
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Monetary Value (₹)</label>
-                                            <input
-                                                type="number"
-                                                required
-                                                className="w-full px-4 py-2 border rounded-xl"
-                                                value={rewardForm.monetaryValue}
-                                                onChange={(e) => setRewardForm({...rewardForm, monetaryValue: e.target.value})}
-                                            />
-                                        </div>
+
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">Stock (-1 for Unlimited)</label>
                                             <input

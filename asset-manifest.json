@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/GreenLedger/static/css/main.e57de777.css",
+    "main.js": "/GreenLedger/static/js/main.38094393.js",
+    "index.html": "/GreenLedger/index.html",
+    "main.e57de777.css.map": "/GreenLedger/static/css/main.e57de777.css.map",
+    "main.38094393.js.map": "/GreenLedger/static/js/main.38094393.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e57de777.css",
+    "static/js/main.38094393.js"
+  ]
+}

@@ -1,10 +1,9 @@
 [build]
-  base = "frontend/"
-  command = "npm install && npm run build"
-  publish = "build/"
+  command = "(cd backend && npm install) && (cd frontend && npm install && npm run build)"
+  publish = "frontend/build/"
 
 [functions]
-  directory = "../backend/"
+  directory = "backend/"
   node_bundler = "esbuild"
 
 [[redirects]]

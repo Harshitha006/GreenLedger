@@ -58,3 +58,6 @@ coverage.xml
 *.log
 .mypy_cache/
 .pytest_cache/
+
+# Local Netlify folder
+.netlify

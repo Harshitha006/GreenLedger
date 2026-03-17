@@ -66,15 +66,20 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/greenledg
   .then(() => {
     console.log('✅ Connected to MongoDB');
 
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-      console.log(`✅ Server running on port ${PORT}`);
-      console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
-    });
+    // Only start the server locally (not in Netlify Lambda functions)
+    if (process.env.NODE_ENV !== 'production' && !process.env.NETLIFY) {
+        const PORT = process.env.PORT || 5000;
+        app.listen(PORT, () => {
+          console.log(`✅ Server running on port ${PORT}`);
+          console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
+        });
+    }
   })
   .catch(err => {
     console.error('❌ MongoDB connection error:', err);
-    process.exit(1);
+    if (!process.env.NETLIFY) process.exit(1);
   });
 
+const serverless = require('serverless-http');
 module.exports = app;
+module.exports.handler = serverless(app);

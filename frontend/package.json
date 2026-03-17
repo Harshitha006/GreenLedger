@@ -2,7 +2,6 @@
     "name": "greenledger-frontend",
     "version": "1.0.0",
     "private": true,
-    "homepage": "https://Harshitha006.github.io/GreenLedger",
     "dependencies": {
         "@headlessui/react": "^1.7.17",
         "@heroicons/react": "^2.0.18",

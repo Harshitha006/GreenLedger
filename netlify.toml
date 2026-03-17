@@ -3,17 +3,12 @@
   publish = "frontend/build/"
 
 [functions]
-  directory = "backend/"
+  directory = "backend/functions/"
   node_bundler = "esbuild"
 
 [[redirects]]
-  from = "/GreenLedger/*"
-  to = "/:splat"
-  status = 301
-
-[[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/server/api/:splat"
+  to = "/.netlify/functions/api/api/:splat"
   status = 200
 
 [[redirects]]

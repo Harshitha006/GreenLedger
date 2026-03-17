@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+pytesseract
+opencv-python
+numpy
+pandas
+scikit-learn
+pillow
+python-multipart
+imagehash
+scipy
+aiofiles
+python-magic-bin
+cryptography
+exifread
+xgboost
